@@ -1,16 +1,36 @@
-// <ai_context>
-// This file contains unit tests for the xmldispatcher package:
-// - Tests the XMLProcessor with a custom TestCodeChangesHandler.
-// - Verifies behavior when no handler is found.
-// - Tests the ReportHandler's CanHandle method.
-// </ai_context>
-
 package xmldispatcher
 
 import (
 	"encoding/xml"
+	"fmt"
 	"testing"
 )
+
+// ReportHandler handles XML with a <report> root element.
+type ReportHandler struct{}
+
+// CanHandle checks if the XML has a <report> root.
+func (r *ReportHandler) CanHandle(xmlData []byte) bool {
+	type Root struct {
+		XMLName xml.Name `xml:"report"`
+	}
+	var root Root
+	err := xml.Unmarshal(xmlData, &root)
+	return err == nil && root.XMLName.Local == "report"
+}
+
+// Handle processes the <report> XML data.
+func (r *ReportHandler) Handle(xmlData []byte) error {
+	type Report struct {
+		Data string `xml:"data"`
+	}
+	var report Report
+	if err := xml.Unmarshal(xmlData, &report); err != nil {
+		return err
+	}
+	fmt.Println("Processing report:", report.Data)
+	return nil
+}
 
 // TestCodeChangesHandler is a test handler for a specific XML structure.
 type TestCodeChangesHandler struct {
